@@ -1,0 +1,5 @@
+sphua:*:2000:3000:Shaun Phua:/home/sphua:/bin/bash
+cchar:*:2001:3001:Charlotte Chua:/home/cchar:/bin/bash
+tswift:*:2002:3000:Taylor Swift:/home/tswift:/bin.bash
+superfinance:*:2003:3000:Super Finance:/home/superfinance:/bin.bash
+supersales:*:2004:3001:Super Sales:/home/supersales:/bin.bash

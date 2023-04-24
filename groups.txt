@@ -1,0 +1,2 @@
+finance:x:3000:tswift,sphua,superfinance 
+sales:x:3001:cchar,supersales

@@ -1,0 +1,47 @@
+Content-Type: multipart/mixed; boundary="//"
+MIME-Version: 1.0
+
+--//
+Content-Type: text/cloud-config; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="cloud-config.txt"
+
+#cloud-config
+cloud_final_modules:
+- [scripts-user, always]
+
+--//
+Content-Type: text/x-shellscript; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="userdata.txt"
+
+#!/bin/bash
+
+# install nfs-client
+apt-get install -y -q nfs-common
+
+# create the skeleton directory for users
+mkdir /etc/skel/finance_qtree 
+mkdir /etc/skel/sales_qtree
+
+# create the groups
+groupadd finance -g 3000
+groupadd sales -g 3001
+
+# create the users
+useradd -d /home/sphua -g 3000 -G sudo -m -N -p "" -s /bin/bash -u 2000 sphua
+useradd -d /home/cchar -g 3001 -G sudo -m -N -p "" -s /bin/bash -u 2001 cchar
+useradd -d /home/tswift -g 3000 -G sudo -m -N -p "" -s /bin/bash -u 2002 tswift
+useradd -d /home/superfinance -g 3000 -G sudo -m -N -p "" -s /bin/bash -u 2003 superfinance
+useradd -d /home/supersales -g 3001 -G sudo -m -N -p "" -s /bin/bash -u 2004 supersales
+
+# mount qtrees for each users
+mount -t nfs -o nfsvers=3 192.168.0.151:/Singapore/Finance /home/sphua/finance_qtree
+mount -t nfs -o nfsvers=3 192.168.0.151:/Singapore/Finance /home/tswift/finance_qtree
+mount -t nfs -o nfsvers=3 192.168.0.151:/Singapore/Sales /home/cchar/sales_qtree
+mount -t nfs -o nfsvers=3 192.168.0.151:/Singapore/Finance /home/superfinance/finance_qtree
+mount -t nfs -o nfsvers=3 192.168.0.151:/Singapore/Sales /home/supersales/sales_qtree
+
+--//--

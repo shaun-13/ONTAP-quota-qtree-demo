@@ -1,0 +1,45 @@
+# check all mounts are correct
+nfs | grep qtree
+
+1. Check qtrees do not grow beyond 5GB (soft:3GB) each (default quota)
+su supersales
+cd /home/supersales/sales_qtree
+dd if=/dev/zero of=4GB bs=1024 count=4096000 &&
+dd if=/dev/zero of=500MB bs=1024 count=512000 &&
+dd if=/dev/zero of=1GB bs=1024 count=1024000
+
+rm -r ../sales_qtree/*
+
+2. Check that finance group does not grow beyond 4GB (soft:3.5GB) (explicit quota)
+su superfinance
+cd /home/superfinance/finance_qtree
+dd if=/dev/zero of=3GB bs=1024 count=3072000 &&
+dd if=/dev/zero of=2GB bs=1024 count=2048000
+
+rm -r ../finance_qtree/*
+
+3. Check that tswift have a limit of 1GB (soft:500MB) (default quota)
+su tswift
+cd /home/tswift/finance_qtree
+dd if=/dev/zero of=400MB_1 bs=1024 count=409600 &&
+dd if=/dev/zero of=400MB_2 bs=1024 count=409600 &&
+dd if=/dev/zero of=400MB_3 bs=1024 count=409600
+
+rm -r ../finance_qtree/*
+
+4. Check that sphua have a limit of 2GB (soft:1.5GB) (explicit quota)
+su sphua 
+cd /home/sphua/finance_qtree 
+dd if=/dev/zero of=1GB_1 bs=1024 count=1024000 &&
+dd if=/dev/zero of=500MB bs=1024 count=512000 &&
+dd if=/dev/zero of=1GB_2 bs=1024 count=1024000
+
+rm -r ../finance_qtree/*
+
+5. Check that cchar have a limit of 700MB (soft:500MB) (explicit quota)
+su cchar 
+cd /home/cchar/sales_qtree 
+dd if=/dev/zero of=500MB bs=1024 count=512000 &&
+dd if=/dev/zero of=400MB bs=1024 count=409600 
+
+rm -r ../sales_qtree/*
