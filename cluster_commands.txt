@@ -1,100 +1,100 @@
 # make sure gateway is set up for new SVM (only applicable if SVM is on-premises and is connected to a VPN tunnel) 
-network route create -vserver svm1_cluster1 -destination 0.0.0.0/0 -gateway 192.168.0.1 -metric 20
+network route create -vserver svm_cluster1 -destination 0.0.0.0/0 -gateway 192.168.0.1 -metric 20
 
 # creates an export rule in the default export policy and attach to the SVM root volume
-vserver export-policy rule create -vserver svm1_cluster1 -policyname default -ruleindex 1 -protocol nfs -clientmatch 0.0.0.0/0 -rorule any -rwrule any -superuser any
+vserver export-policy rule create -vserver svm_cluster1 -policyname default -ruleindex 1 -protocol nfs -clientmatch 0.0.0.0/0 -rorule any -rwrule any -superuser any
 
-volume modify -vserver svm1_cluster1 -volume svm1_cluster1_root -policy default
+volume modify -vserver svm_cluster1 -volume svm_cluster1_root -policy default
 
 vserver export-policy show 
 
 # create an export policy named "singaporeEP"
-vserver export-policy create -vserver svm1_cluster1 -policyname singaporeEP
+vserver export-policy create -vserver svm_cluster1 -policyname singaporeEP
 
 vserver export-policy show 
 
 # add rule to the export policy "singaporeEP"
-vserver export-policy rule create -vserver svm1_cluster1 -policyname singaporeEP -clientmatch 172.20.0/16 -rwrule sys -rorule sys -anon 65535 -ruleindex 1 -protocol nfs
+vserver export-policy rule create -vserver svm_cluster1 -policyname singaporeEP -clientmatch 172.20.0/16 -rwrule sys -rorule sys -anon 65535 -ruleindex 1 -protocol nfs
 
 # creates a new volume "Singapore"
-volume create -vserver svm1_cluster1 -volume Singapore -aggregate aggr1 -size 10GB -state online -policy singaporeEP -junction-path /Singapore
+volume create -vserver svm_cluster1 -volume Singapore -aggregate aggr1 -size 10GB -state online -policy singaporeEP -junction-path /Singapore
 
 # creates new UNIX users by loading the data from an URI
-vserver services name-service unix-user load-from-uri -vserver svm1_cluster1 -uri https://raw.githubusercontent.com/shaun-13/ONTAP-qtree-demo/main/users.txt -overwrite false 
+vserver services name-service unix-user load-from-uri -vserver svm_cluster1 -uri https://raw.githubusercontent.com/shaun-13/ONTAP-quota-qtree-demo/main/users.txt -overwrite false 
 
 vserver services name-service unix-user show
 
 # creates new UNIX groups by loading the data from an URI
-vserver services name-service unix-group load-from-uri -vserver svm1_cluster1 -uri https://raw.githubusercontent.com/shaun-13/ONTAP-qtree-demo/main/groups.txt -overwrite false -skip-name-validation true 
+vserver services name-service unix-group load-from-uri -vserver svm_cluster1 -uri https://raw.githubusercontent.com/shaun-13/ONTAP-quota-qtree-demo/main/groups.txt -overwrite false -skip-name-validation true 
 
 vserver services name-service unix-group show
 
 # creates qtrees "Finance" and "Sales"
-volume qtree create -vserver svm1_cluster1 -volume Singapore -qtree Finance -security-style unix -export-policy singaporeEP -group 3000 -oplock-mode enable -unix-permissions 0770
+volume qtree create -vserver svm_cluster1 -volume Singapore -qtree Finance -security-style unix -export-policy singaporeEP -group 3000 -oplock-mode enable -unix-permissions 0770
 
-volume qtree create -vserver svm1_cluster1 -volume Singapore -qtree Sales -security-style unix -export-policy singaporeEP -group 3001 -oplock-mode enable -unix-permissions 0770
+volume qtree create -vserver svm_cluster1 -volume Singapore -qtree Sales -security-style unix -export-policy singaporeEP -group 3001 -oplock-mode enable -unix-permissions 0770
 
-# creates a new quota policy "dept_total_limit" to apply on SVM "svm1_cluster1"
-volume quota policy create -vserver svm1_cluster1 -policy-name dept_total_limit
+# creates a new quota policy "dept_total_limit" to apply on SVM "svm_cluster1"
+volume quota policy create -vserver svm_cluster1 -policy-name dept_total_limit
 
 # apply this policy on all qtrees on this volume and sets a default tree quota which limits each qtree from growing beyond 5GB each
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type tree -target "" -disk-limit 5GB -soft-disk-limit 3GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type tree -target "" -disk-limit 5GB -soft-disk-limit 3GB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
 # apply this policy on the UNIX group "finance" for a qtree named "Finance" on volume "Singapore" and sets an explicit quota which limits the group "finance" limits the group from growing beyond 4GB.
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type group -target finance -qtree Finance -disk-limit 4GB -soft-disk-limit 3.5GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type group -target finance -qtree Finance -disk-limit 4GB -soft-disk-limit 3.5GB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
 # apply this policy on all UNIX users for all qtrees on volume "Singapore" and sets a default user quota which limits each user from growing beyond 1GB.
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target "" -qtree "" -disk-limit 1GB -soft-disk-limit 500MB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target "" -qtree "" -disk-limit 1GB -soft-disk-limit 500MB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
 # apply this policy on UNIX user "sphua" for a qtree named "Finance" on volume "Singapore" and sets an explict quota of 2GB.
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target sphua -qtree Finance -disk-limit 2GB -soft-disk-limit 1.5GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target sphua -qtree Finance -disk-limit 2GB -soft-disk-limit 1.5GB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
 # apply this policy on UNIX users "sphua" on volume "Singapore" and overrides the default user quota which limits each user from growing beyond 1GB so that "sphua" can grow to 2GB.
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target sphua -qtree "" -disk-limit 2GB -soft-disk-limit 1.5GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target sphua -qtree "" -disk-limit 2GB -soft-disk-limit 1.5GB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
 # apply this policy on UNIX user "cchar" for a qtree named "Sales" on volume "Singapore" and sets an explict quota of 700MB.
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target cchar -qtree Sales -disk-limit 700MB -soft-disk-limit 500MB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target cchar -qtree Sales -disk-limit 700MB -soft-disk-limit 500MB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
 # apply this policy on UNIX users "superfinance" and "supersales" for a their respective qtrees named "Finance" and "Sales" on volume "Singapore" and sets an explict quota of 10GB.
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target superfinance -qtree Finance -disk-limit 10GB -soft-disk-limit 9GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target superfinance -qtree Finance -disk-limit 10GB -soft-disk-limit 9GB
 
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target supersales -qtree Sales -disk-limit 10GB -soft-disk-limit 9GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target supersales -qtree Sales -disk-limit 10GB -soft-disk-limit 9GB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
 # apply this policy on UNIX users "superfinance" and "supersales" on volume "Singapore" and overrides the default user quota which limits each user from growing beyond 1GB so that these users can grow to 10GB.
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target superfinance -qtree "" -disk-limit 10GB -soft-disk-limit 9GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target superfinance -qtree "" -disk-limit 10GB -soft-disk-limit 9GB
 
-volume quota policy rule create -vserver svm1_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target supersales -qtree "" -disk-limit 10GB -soft-disk-limit 9GB
+volume quota policy rule create -vserver svm_cluster1 -policy-name dept_total_limit -volume Singapore -type user -target supersales -qtree "" -disk-limit 10GB -soft-disk-limit 9GB
 
-vol quota policy rule show -vserver svm1_cluster1 -policy-name dept_total_limit 
+vol quota policy rule show -vserver svm_cluster1 -policy-name dept_total_limit 
 
-# show the current quota policy attached to the SVM "svm1_cluster1"
-vserver show -fields quota-policy -vserver svm1_cluster1
+# show the current quota policy attached to the SVM "svm_cluster1"
+vserver show -fields quota-policy -vserver svm_cluster1
 
 # attach the newly created quota policy "dept_total_limit" to the SVM
-vserver modify -vserver svm1_cluster1 -quota-policy dept_total_limit
+vserver modify -vserver svm_cluster1 -quota-policy dept_total_limit
 
-# verify that the new quota policy is attached to the SVM "svm1_cluster1" 
-vserver show -fields quota-policy -vserver svm1_cluster1
+# verify that the new quota policy is attached to the SVM "svm_cluster1" 
+vserver show -fields quota-policy -vserver svm_cluster1
 
 # initialize the quota on volume "Singapore"
-volume quota on -vserver svm1_cluster1 -volume Singapore -foreground
+volume quota on -vserver svm_cluster1 -volume Singapore -foreground
 
 # Check for initialization errors
-volume quota show -vserver svm1_cluster1 -volume Singapore
+volume quota show -vserver svm_cluster1 -volume Singapore
 
 # display a quota report so that you can ensure the enforced quotas match your expectations
-volume quota report -vserver svm1_cluster1 
+volume quota report -vserver svm_cluster1 
