@@ -89,7 +89,7 @@ Parameters:
   EnvironmentName:
     Description: Enter the environment name to be prefixed to resource names
     Type: String
-    Default: "Quota Test"
+    Default: "Qtree Quota Test"
   VpcCIDR:
     Description: Create a new VPC. Enter the IPv4 CIDR block for this VPC.
     Type: String
@@ -852,6 +852,7 @@ Resources:
 
   OntapFileSystem:
     Type: "AWS::FSx::FileSystem"
+    DeletionPolicy: Delete
     Properties:
       FileSystemType: ONTAP
       StorageCapacity: 1024
@@ -872,6 +873,7 @@ Resources:
           Value: !Sub ${EnvironmentName} OntapFileSystem_SAZ
   OntapSVM:
     Type: AWS::FSx::StorageVirtualMachine
+    DeletionPolicy: Delete
     DependsOn: OntapFileSystem
     Properties: 
       FileSystemId: !Ref OntapFileSystem
@@ -890,12 +892,12 @@ Resources:
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref PublicSubnet1CIDR
       SecurityGroupEgress:
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref PrivateSubnet1CIDR
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} OntapFileSystem_SAZ_SG 
