@@ -897,7 +897,7 @@ Resources:
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
-          CidrIp: !Ref PrivateSubnet1CIDR
+          CidrIp: !Ref PublicSubnet1CIDR
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} OntapFileSystem_SAZ_SG 
